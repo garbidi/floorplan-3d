@@ -1,0 +1,56 @@
+{
+ "living": {
+  "box": [
+   190,
+   305,
+   1420,
+   2633
+  ],
+  "objects": "kitchen-living room: a 3-seat cream sofa along the left wall at the top with cushions, a light rug, a rectangular walnut coffee table on the rug, a plant in the top right corner, a slim black TV flat on the right wall, a plant below it, a stainless steel fridge on the left wall below the sofa, one wooden countertop along the left wall that turns along the bottom wall (L shape) with a black 4-zone induction cooktop and a steel sink, a rectangular wooden dining table at the right wall with one upholstered chair above and one below, a window with curtains at the top, an open door at the bottom right."
+ },
+ "loggia": {
+  "box": [
+   1355,
+   305,
+   2597,
+   920
+  ],
+  "objects": "glazed loggia: windows along the top wall, a small round side table, a cream armchair, a plant in the top right corner, a glazed partition with an open glass door at the bottom."
+ },
+ "bedroom": {
+  "box": [
+   1401,
+   880,
+   2597,
+   2180
+  ],
+  "objects": "bedroom: a double bed with its headboard against the right wall, white and beige bedding with a beige throw across the bed and pillows at the headboard, a light rug under the bed, two wooden nightstands with glowing lamps above and below the bed, a slim black TV flat on the left wall, an open door at the bottom left."
+ },
+ "wardrobes": {
+  "box": [
+   1700,
+   2140,
+   2597,
+   2830
+  ],
+  "objects": "two open wardrobes one above the other, each a wooden carcass with a chrome rail running left to right and clothes on hangers hanging ACROSS the rail, seen strictly from above (only shoulders of garments visible), warm LED glow; below them on the right a closed wooden cabinet with a flat top; parquet floor on the left."
+ },
+ "hall": {
+  "box": [
+   940,
+   2330,
+   1820,
+   3205
+  ],
+  "objects": "hallway: parquet floor, a narrow wooden shoe cabinet against the left wall, a cream pouf against the left wall below it, a tall white boiler cabinet at the right wall, open door leaves as drawn (entrance door at the bottom opening outward)."
+ },
+ "bath": {
+  "box": [
+   1460,
+   2780,
+   2597,
+   3802
+  ],
+  "objects": "bathroom with beige stone floor tiles: a tall white cabinet along the left wall at the top, a wall-hung white toilet with installation at the right wall, a small white washbasin at the right wall below the toilet, a white washing machine at the bottom left (plain flat top), a white bathtub along the bottom wall to its right."
+ }
+}

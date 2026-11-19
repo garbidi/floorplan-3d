@@ -1,0 +1,10 @@
+# temporary files, browser screenshots, logs, session ids
+tools/tmp/
+tools/*.log
+tools/*.err
+tools/session*.json
+__pycache__/
+*.pyc
+# intermediate renders (only final/ is published)
+renders/
+# unrelated document

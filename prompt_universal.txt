@@ -1,0 +1,138 @@
+================================================================================
+UNIVERSAL PROMPT — part A (identical for every apartment, never edit)
+Attach two images: IMAGE 1 = "the plan" · IMAGE 2 = reference_style.png
+================================================================================
+
+THE TWO REFERENCE IMAGES HAVE DIFFERENT ROLES — do not mix them up:
+
+IMAGE 1 is the FLOOR PLAN. It defines the geometry and nothing else: outer contour, wall positions, wall
+thickness, room shapes and proportions, window and door positions, and where each piece of furniture
+stands. Take the layout only from here.
+
+IMAGE 2 is the TARGET. It is an approved render of a DIFFERENT apartment. Copy from it the camera angle,
+the warm light colour palette, the near-black wall caps, the wood floor tone, the warm local lighting,
+the white rounded area plates with the gold badge — and above all its LEVEL OF DETAIL AND FINISH. Do NOT
+copy its layout, its rooms or its outline. The outline comes only from IMAGE 1.
+
+--------------------------------------------------------------------------------
+
+Create a clean, precise 3D CGI architectural visualization of a furnished apartment seen from above —
+the quality of a professional studio render, matching IMAGE 2 exactly in finish. Ceiling and roof
+removed, doll-house cutaway. Camera almost straight overhead with only a slight 5-10 degree tilt so that
+wall thickness and a little volume are visible. No wide-angle lens, no fisheye, no strong perspective, no
+distortion — the layout must stay as readable as the original floor plan. The apartment entrance door is
+at the BOTTOM edge of the image.
+
+STRICT GEOMETRY — the most important rule:
+Reproduce the floor plan from IMAGE 1 1:1. Identical outer contour, identical wall positions, identical
+wall thickness, identical room proportions and relative sizes, identical position and width of every
+window and every door opening. Do not add, remove, merge, move or resize any wall, room, window or door.
+Do not invent extra rooms, niches, balconies or corridors. Every room must keep the exact shape and area
+shown on the plan.
+
+FURNITURE — read it from the plan:
+The furniture is already drawn on IMAGE 1 as 2D symbols. Convert every symbol into its real
+three-dimensional object and place it in exactly the same position and orientation as on the plan: beds,
+bedside tables, wardrobes, sofas, armchairs, dining tables and chairs, desks, kitchen units, hob, sink,
+fridge, bathtub, shower, toilet, washbasin, washing machine, potted plants.
+Add no furniture that is not on the plan and omit none that is. No rugs, no paintings, no extra plants.
+Furniture must be logically oriented for its room and must not block doors or windows.
+
+MATCH THE DETAIL LEVEL OF IMAGE 2 — this matters as much as the geometry:
+IMAGE 2 shows exactly how finished every object must be. Reproduce the same treatment:
+- the dining table carries individual place settings, one per chair: a white plate, a knife and a fork
+  laid beside it, a small glass;
+- the kitchen worktop has a black induction hob set flush into the wood surface, a stainless steel
+  kettle, a small ceramic cup or canister, and a white square sink with a slim mixer tap;
+- every wardrobe and storage unit is closed with a frosted glass panel lit from inside by a warm LED
+  strip; below the glass the garments read as a row of individual hanging shoulders along the rail, and
+  the shelves carry neat stacks of folded towels and linen in soft beige, grey and brown tones;
+- each bedside table carries a small warm lamp with a visible shade, glowing and casting a pool of light
+  on the floor and the wall beside it;
+- the bathroom has large beige floor tiles, a white bathtub or shower with a wall mixer and a towel rail,
+  a white washbasin with a round mirror, a narrow wall shelf holding a few small bottles and a folded
+  towel, and a white wall-hung toilet;
+- the washing machine reads from above as a plain flat white rectangle;
+- every window has a light sheer white curtain gathered along it;
+- the loggia has one large leafy potted plant and a pendant lamp glowing above the armchair.
+Every one of these objects is crisp and correctly formed, with clean edges, accurate proportions and a
+soft contact shadow. Nothing is blurred, melted, warped, smeared or left as an undefined blob. Keep the
+quantity modest — a few well-made objects per room, exactly as in IMAGE 2, never clutter.
+
+PALETTE AND MATERIALS — copy IMAGE 2:
+- Light, warm and comfortable colour scheme: warm oak, soft beige, warm white, muted grey.
+- Floor: ONE single light warm oak wood-look laminate through the entire apartment — all rooms, kitchen,
+  hallway and loggia — same tone, same plank width, same plank direction everywhere.
+- The plank pattern runs CONTINUOUSLY from room to room across every doorway — no threshold strip, no
+  change of tone or direction, no visible boundary line between rooms.
+- Only the bathroom and the WC have a different floor: light beige large-format ceramic tile. Nothing
+  else is tiled. The kitchen floor and the hallway floor are the same wood as the rooms — never tiled,
+  never stone, never a different shade.
+- Walls: light warm white / soft beige plaster, with warm wood wall panelling where IMAGE 2 has it. Wall
+  tops (the cut) are a flat matte near-black charcoal cap, exactly as in IMAGE 2 — never light grey.
+- All windows are modern white plastic (PVC) windows with white frames.
+
+KITCHEN RULE — base units only:
+The kitchen consists ONLY of floor-standing lower cabinets with a continuous worktop, exactly as in
+IMAGE 2. There are NO wall cabinets, NO upper cabinets, NO overhead cupboards, NO open wall shelves and
+NO shelf units of any kind above the worktop. Seen from above, the worktop, the sink and the hob are
+fully visible and the hob is set flush INTO the worktop — never resting on top of a cabinet. The wall
+above the worktop is bare.
+
+WASHING MACHINE — critical:
+The washing machine stands upright on the floor. Seen from above it is a plain rectangular box with a
+flat white top panel facing the camera and nothing on it. Its round glass door is on the vertical front
+face, facing sideways into the room, and is therefore NOT visible from above. Never draw a circle, a
+porthole, a round door or control dials on the top surface. The machine is never lying on its back.
+
+WARDROBES AND STORAGE:
+Every wardrobe, closet and built-in storage unit has a TRANSPARENT frosted glass top so the interior is
+fully visible from above, lit by a warm LED strip inside, exactly as in IMAGE 2. Inside, show a small
+number of clearly separated items, never a dense undifferentiated mass: a rail with 6-8 garments hanging
+HORIZONTALLY along it, seen from above as a neat row of shoulders side by side (never flat against the
+wall, never vertical); one or two tidy stacks of folded clothes; a woven basket or a suitcase; 3-4 pairs
+of shoes in a row on the bottom shelf. Give the garments soft muted colours that contrast with the light
+shelves — warm beige, camel, dusty blue, soft grey, olive, terracotta — never an all-white blur. Every
+item reads as a separate object with its own silhouette and a soft shadow.
+Wardrobes stay exactly where the plan puts them and never expand into a neighbouring room.
+
+BATHROOM:
+The wall segments reserved for plumbing risers and communications must be closed and finished in the same
+colour as the wall — no open shafts, no visible pipes, no dark slots.
+
+LIGHTING:
+Soft, bright, even daylight plus warm local light sources as in IMAGE 2: bedside lamps, a floor lamp, a
+pendant above the dining table, a pendant on the loggia, LED strips inside the wardrobes and under the
+kitchen worktop edge. Each lamp glows and throws a soft warm pool of light onto the floor and the nearby
+wall. Light, comfortable, airy. No dark or moody interior, no heavy shadows.
+
+CLEAN OUTPUT — remove all 2D drafting symbols:
+No hatching, no door swing arcs, no dashed lines, no dimension lines or arrows, no hanger pictograms, no
+socket / plug / snowflake / glass icons, no room names, no apartment number, no living-area figure, no
+north arrow, no logo, no watermark, no captions, no random text or lettering anywhere in the image.
+
+LABELS — MANDATORY, and the only text allowed in the image:
+Every single room must carry its own white area plate — none may be left without one, and none may be
+hidden behind furniture. Never omit the plates and never omit the badge.
+Small white rounded rectangular plates with dark grey digits, one in the centre of each room, always
+upright and horizontal regardless of how the digits are printed on the plan, easy to read on top of floor
+and furniture, exactly like the plates in IMAGE 2. The digits are the room areas listed at the end of
+this prompt — copy them exactly, invent nothing.
+Plus one badge in a free area of the plan: a gold square with the number of rooms and, next to it on a
+white field, the total area. No apartment number, no room names, no living area figure.
+
+
+================================================================================
+PART B — fill in per apartment
+================================================================================
+
+THIS APARTMENT: a {N}-room flat, total area {S} m2. Entrance door at the bottom.
+Then the room-by-room list (see prompt_42.txt / prompt_44.txt / prompt_45.txt for worked examples).
+
+AREA PLATES TO RENDER: {list of numbers and where}.
+Badge: gold square "{N}", white field "{S}".
+
+================================================================================
+SETTINGS: resolution 4K (mandatory) · temperature 0.4 · 4 variants
+Aspect ratio: wide plans → 4:3 · tall plans → 3:4
+================================================================================

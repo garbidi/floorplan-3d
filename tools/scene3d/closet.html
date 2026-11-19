@@ -1,0 +1,239 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+// Wardrobe interior seen strictly from above, real 3D: draped garments on hangers, folded stacks, shoes.
+// World units = final image pixels. x across the wardrobe depth (0 = back wall, W = open front),
+// z along the rail (0..H), y up.
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const C = window.CFG;
+const W = C.w, H = C.h, K = C.ss || 3;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W * K, H * K);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = C.exposure || 1.1;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const cam = new THREE.OrthographicCamera(0, W, 0, -H, 1, 3000);
+cam.position.set(0, 1500, 0); cam.rotation.set(-Math.PI / 2, 0, 0); cam.updateProjectionMatrix();
+
+let seed = C.seed || 5;
+const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const U = (a, b) => a + (b - a) * R();
+const pick = a => a[Math.floor(R() * a.length)];
+
+// ---------- textures ----------
+function canvas(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
+function normalFromHeight(hc, strength) {
+  const w = hc.width, h = hc.height, src = hc.getContext('2d').getImageData(0, 0, w, h).data;
+  return canvas(w, h, (ctx) => {
+    const img = ctx.createImageData(w, h), d = img.data, at = (x, y) => src[(((y + h) % h) * w + ((x + w) % w)) * 4] / 255;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const dx = (at(x + 1, y) - at(x - 1, y)) * strength, dy = (at(x, y + 1) - at(x, y - 1)) * strength;
+      const l = Math.hypot(dx, dy, 1), i = (y * w + x) * 4;
+      d[i] = (-dx / l * .5 + .5) * 255; d[i + 1] = (-dy / l * .5 + .5) * 255; d[i + 2] = (1 / l * .5 + .5) * 255; d[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  });
+}
+function tex(c, rep) { const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (rep) t.repeat.set(rep[0], rep[1]); t.anisotropy = 8; return t; }
+const WEAVE = {
+  knit: normalFromHeight(canvas(128, 128, (x, w, h) => { x.fillStyle = '#000'; x.fillRect(0, 0, w, h);
+    for (let c = 0; c < 16; c++) for (let r = 0; r < 22; r++) { const cx = c * 8 + 4, cy = r * 6; x.fillStyle = '#fff';
+      x.beginPath(); x.ellipse(cx - 2, cy, 2.2, 3.6, 0.5, 0, 7); x.fill(); x.beginPath(); x.ellipse(cx + 2, cy, 2.2, 3.6, -0.5, 0, 7); x.fill(); } }), 3),
+  plain: normalFromHeight(canvas(128, 128, (x, w, h) => { const im = x.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) { const X = i % w, Y = (i / w) | 0; const v = 128 + 40 * Math.sin(X * 1.6) * Math.sin(Y * 1.6) + (Math.random() - .5) * 50;
+      im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; } x.putImageData(im, 0, 0); }), 1.5),
+  twill: normalFromHeight(canvas(128, 128, (x, w, h) => { const im = x.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) { const X = i % w, Y = (i / w) | 0; const v = 128 + 70 * Math.sin((X + Y) * 1.3) + (Math.random() - .5) * 40;
+      im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; } x.putImageData(im, 0, 0); }), 2),
+  wool: normalFromHeight(canvas(128, 128, (x, w, h) => { const im = x.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) { const v = 128 + (Math.random() - .5) * 120; im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; }
+    x.putImageData(im, 0, 0); x.filter = 'blur(1px)'; x.drawImage(x.canvas, 0, 0); }), 2),
+};
+const walnutC = canvas(512, 512, (x, w, h) => { x.fillStyle = '#5a3a28'; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < 260; i++) { const y = Math.random() * h; x.strokeStyle = `rgba(${Math.random() < .5 ? '30,16,8' : '120,80,55'},${Math.random() * .25})`; x.lineWidth = Math.random() * 2.5;
+    x.beginPath(); x.moveTo(0, y); for (let X = 0; X <= w; X += 32) x.lineTo(X, y + Math.sin(X * .01 + i) * 3); x.stroke(); } });
+const M = {
+  walnut: new THREE.MeshStandardMaterial({ map: tex(walnutC, [1, 3]), roughness: .6 }),
+  walnutLight: new THREE.MeshStandardMaterial({ map: tex(walnutC, [1, 1]), color: 0xe8c9ae, roughness: .55 }),
+  chrome: new THREE.MeshStandardMaterial({ color: 0xe8e6e2, metalness: 1, roughness: .18 }),
+  wood: new THREE.MeshStandardMaterial({ color: 0xb58a5e, roughness: .5 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: .9 }),
+};
+scene.environment = null;
+function fabric(color, kind) {
+  const nm = tex(WEAVE[kind] || WEAVE.plain, kind === 'knit' ? [7, 5] : [10, 8]);
+  const col = new THREE.Color(color);
+  return new THREE.MeshPhysicalMaterial({ color: col, roughness: kind === 'shirt' ? .72 : .92, normalMap: nm,
+    normalScale: new THREE.Vector2(kind === 'knit' ? 1.1 : .55, kind === 'knit' ? 1.1 : .55),
+    sheen: 1, sheenRoughness: .55, sheenColor: col.clone().lerp(new THREE.Color(0xffffff), .35) });
+}
+function add(m, cast = true) { m.castShadow = cast; m.receiveShadow = true; scene.add(m); return m; }
+const se = (c, n) => Math.sign(c) * Math.pow(Math.abs(c), 2 / n);
+
+// ---------- hanging garment ----------
+// Lofted surface: a shoulder dome that turns into the draped body; depth folds grow towards the hem.
+function garment(g) {
+  const { x, z, w, t, len, kind, color } = g, top = g.top;
+  const a = w / 2, b = t / 2, NA = 120, NT = 46, tc = .34;
+  const cap = b * (kind === 'coat' ? .85 : .75), slope = a * (kind === 'coat' ? .2 : .28);
+  const fp = Array.from({ length: 4 }, () => [U(2.5, 6.5), U(0, 6.28), U(.03, .08)]);
+  const flareZ = { coat: .22, wool: .18, knit: .25, shirt: .12, denim: .15 }[kind] || .15;
+  const pos = [], uv = [], idx = [];
+  for (let i = 0; i <= NT; i++) {
+    const tt = i / NT;
+    for (let j = 0; j <= NA; j++) {
+      const th = j / NA * Math.PI * 2, ex = se(Math.cos(th), 5.5), ez = se(Math.sin(th), 2.2);
+      let r, drop, d = 0;
+      if (tt <= tc) { const q = tt / tc; r = Math.sin(q * Math.PI / 2); drop = cap * (1 - Math.cos(q * Math.PI / 2)); }
+      else { d = (tt - tc) / (1 - tc); r = 1; drop = cap + d * len; }
+      let fold = 0; for (const [k, p, amp] of fp) fold += amp * Math.sin(ex * k * Math.PI + p);
+      const zs = b * ez * r * (1 + d * flareZ + d * fold) + d * b * .12 * Math.sin(ex * 3 + fp[0][1]);
+      const xs = a * ex * r * (1 - .06 * d);
+      const y = top - slope * Math.pow(Math.abs(ex * r), 2.2) - drop;
+      pos.push(x + xs, y, z + zs); uv.push(j / NA * 3, tt * 2);
+    }
+  }
+  for (let i = 0; i < NT; i++) for (let j = 0; j < NA; j++) { const p = i * (NA + 1) + j, q = p + NA + 1; idx.push(p, q, p + 1, p + 1, q, q + 1); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+  const mat = fabric(color, kind); mat.side = THREE.DoubleSide; add(new THREE.Mesh(geo, mat));
+  // sleeves: soft tubes falling from the shoulder ends, slightly forward/back
+  for (const s of [-1, 1]) {
+    const sx = x + s * a * .9, sz = z + U(-.3, .3) * b, dz = U(-.6, .6) * b;
+    const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(sx, top - slope - cap * .7, sz), new THREE.Vector3(sx + s * 2, top - slope - cap - len * .3, sz + dz * .5),
+      new THREE.Vector3(sx - s * 4, top - len * .75, sz + dz)]);
+    const tube = new THREE.TubeGeometry(curve, 24, b * (kind === 'shirt' ? .42 : .55), 20, false);
+    add(new THREE.Mesh(tube, mat));
+  }
+  // neckline / collar
+  if (kind === 'shirt' || kind === 'coat') {
+    const col = new THREE.Mesh(new THREE.TorusGeometry(b * .62, kind === 'coat' ? 3.2 : 2.2, 12, 40, Math.PI * 1.25), mat);
+    col.rotation.set(-Math.PI / 2, 0, Math.PI * .125 + Math.PI); col.scale.set(1.2, 1, 1); col.position.set(x - 2, top + 1.5, z); add(col);
+  } else if (kind === 'knit') {
+    const col = new THREE.Mesh(new THREE.TorusGeometry(b * .5, 1.8, 10, 40), mat); col.rotation.x = -Math.PI / 2; col.scale.set(1.35, 1, 1); col.position.set(x, top + .5, z); add(col);
+  }
+  // hanger hook over the rail
+  const hk = new THREE.Mesh(new THREE.TorusGeometry(4.5, .9, 8, 24, Math.PI * 1.3), M.chrome);
+  hk.rotation.set(0, 0, -Math.PI * .15); hk.position.set(C.railX, C.railY + 1, z); add(hk);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(.9, .9, C.railY - top + 2, 8), M.chrome); neck.position.set(C.railX + 4.2, (C.railY + top) / 2, z); add(neck);
+  const hb = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 3, 16), M.wood); hb.position.set(x, top + 1, z); add(hb);
+}
+
+// ---------- folded clothes ----------
+function pillow(w, h, d, r, bulge) {
+  const g = new RoundedBoxGeometry(w, h, d, 6, r), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (y <= 0) continue;
+    const nx = p.getX(i) / (w / 2), nz = p.getZ(i) / (d / 2); p.setY(i, y + bulge * (y / (h / 2)) * Math.max(0, 1 - nx * nx) * Math.max(0, 1 - nz * nz)); }
+  g.computeVertexNormals(); return g;
+}
+function folded(x, z, w, d, n, y0, base) {
+  let y = y0;
+  for (let i = 0; i < n; i++) {
+    const [color, kind] = base, h = U(9, 12);
+    const m = new THREE.Mesh(pillow(w + U(-4, 4), h, d + U(-3, 3), h * .45, 3.5), fabric(new THREE.Color(color).multiplyScalar(U(.93, 1.05)), kind));
+    m.position.set(x + U(-2.5, 2.5), y + h / 2, z + U(-2.5, 2.5)); m.rotation.y = U(-.04, .04); add(m);
+    if (i === n - 1) { // fold / sleeve layer on the top item
+      const f = new THREE.Mesh(pillow(w * .5, h * .45, d * .97, h * .22, 2), m.material);
+      f.position.set(x + w * .23, y + h + 1, z); f.rotation.y = m.rotation.y; add(f);
+    }
+    y += h * .92;
+  }
+}
+
+// ---------- shoes ----------
+function shoe(x, z, ang, len, col, kind, mirror) {
+  const g = new THREE.Group(), wd = len * .36;
+  const outline = (L, Wd) => { const s = new THREE.Shape(), m = 1;
+    s.moveTo(0, -Wd * .32 * m); s.bezierCurveTo(L * .35, -Wd * .5 * m, L * .75, -Wd * .55 * m, L * .95, -Wd * .3 * m);
+    s.bezierCurveTo(L * 1.02, -Wd * .05 * m, L * 1.0, Wd * .3 * m, L * .8, Wd * .45 * m);
+    s.bezierCurveTo(L * .55, Wd * .52 * m, L * .3, Wd * .42 * m, 0, Wd * .3 * m); s.bezierCurveTo(-L * .06, Wd * .15 * m, -L * .06, -Wd * .2 * m, 0, -Wd * .32 * m); return s; };
+  const sole = new THREE.Mesh(new THREE.ExtrudeGeometry(outline(len, wd), { depth: 3, bevelEnabled: true, bevelThickness: 1, bevelSize: 1, bevelSegments: 3 }),
+    new THREE.MeshStandardMaterial({ color: kind === 'sneaker' ? 0xf2f0ec : 0x2a221d, roughness: .7 }));
+  sole.rotation.x = -Math.PI / 2; g.add(sole);
+  const hUp = kind === 'boot' ? 24 : 12;
+  const upM = kind === 'sneaker' ? fabric(col, 'plain') : new THREE.MeshPhysicalMaterial({ color: col, roughness: .38, clearcoat: .4, clearcoatRoughness: .5 });
+  const up = new THREE.Mesh(new THREE.ExtrudeGeometry(outline(len * .94, wd * .9), { depth: hUp, bevelEnabled: true, bevelThickness: 5, bevelSize: 4, bevelSegments: 6, curveSegments: 24 }), upM);
+  up.rotation.x = -Math.PI / 2; up.position.set(len * .03, 3, 0); g.add(up);
+  // opening at the heel
+  const op = new THREE.Mesh(new THREE.CircleGeometry(1, 32), new THREE.MeshStandardMaterial({ color: 0x1b1714, roughness: 1 }));
+  op.rotation.x = -Math.PI / 2; op.scale.set(len * .14, wd * .2, 1); op.position.set(len * .26, hUp + 8.3, 0); g.add(op);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1, .09, 8, 32), upM); rim.rotation.x = -Math.PI / 2; rim.scale.set(len * .15, wd * .22, 3); rim.position.set(len * .26, hUp + 8.2, 0); g.add(rim);
+  if (kind === 'sneaker') for (let i = 0; i < 4; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, wd * .34), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .8 }));
+    l.position.set(len * (.5 + i * .075), hUp + 8.6, 0); g.add(l); }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
+  g.position.set(x, 0, z); g.rotation.y = ang; scene.add(g);
+}
+
+// ---------- carcass ----------
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(W + 400, H + 400), new THREE.MeshStandardMaterial({ map: tex(walnutC, [1, 4]), color: 0xb89a88, roughness: .7 }));
+floor.rotation.x = -Math.PI / 2; floor.position.set(W / 2, 0, H / 2); add(floor, false);
+const box = (x0, z0, x1, z1, y0, y1, m) => { const b = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), m); b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2); return add(b); };
+box(-40, -40, 0, H + 40, 0, C.wallH, M.walnut);                 // back wall
+box(-40, -40, W + 40, 0, 0, C.wallH, M.walnut); box(-40, H, W + 40, H + 40, 0, C.wallH, M.walnut);
+for (const d of C.dividers) box(0, d - C.th, W, d + C.th, 0, C.wallH, M.walnutLight);
+
+// ---------- content ----------
+const secs = []; let prev = 0;
+for (const d of [...C.dividers, H]) { secs.push([prev + (prev ? C.th : 0), d - (d !== H ? C.th : 0)]); prev = d; }
+C.railX = W * .47; C.railY = C.wallH - 40;
+const PAL = C.palette;
+secs.forEach(([s0, s1], si) => {
+  const mode = C.modes[si];
+  if (mode === 'hang' || mode === 'hang_shoes') {
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, s1 - s0, 16), M.chrome); rail.rotation.x = Math.PI / 2; rail.position.set(C.railX, C.railY, (s0 + s1) / 2); add(rail);
+    const items = C.hang[si]; let z = s0 + U(18, 30);
+    const GW = C.gw || 0, SL = C.shoeL || 96;
+    for (const it of items) {
+      const [color, kind] = PAL[it], t = { coat: 34, wool: 26, knit: 28, shirt: 16, denim: 22 }[kind] * U(.9, 1.1) * (C.tk || 1);
+      z += t / 2;
+      if (z > s1 - t / 2 - 4) break;
+      const fw = { coat: 1.06, wool: 1.0, knit: .96, denim: 1.0 }[kind] || .95;
+      const gw = GW ? Math.min(W * 0.9, GW * fw) : (W * { coat: .86, wool: .82, knit: .78, denim: .8 }[kind] || W * .76);
+      garment({ x: C.railX + U(-3, 3), z, w: gw, t, len: { coat: 380, wool: 260, knit: 220, shirt: 280, denim: 230 }[kind],
+        kind, color, top: C.railY - 14 - U(0, 4) });
+      z += t / 2 + U(6, 26) * (C.tk || 1);
+    }
+    if (mode === 'hang_shoes') {
+      const sh = C.shoes[si], wd = SL * 0.36, pairW = wd * 2.5, zFree0 = z + 20, zFree1 = s1 - 18;
+      const fits = (zFree1 - zFree0) >= sh.length * pairW;
+      sh.forEach(([col, kind], k) => {
+        const L = kind === 'boot' ? SL * 1.04 : SL, a = Math.PI + U(-.06, .06);
+        const zc = fits ? zFree0 + (zFree1 - zFree0) * (k + .5) / sh.length : s0 + (s1 - s0) * (k + .5) / sh.length;
+        const hx = W - 16;                       // heel near the open front, toes into the wardrobe, clear of the edge
+        shoe(hx, zc - wd * 0.62, a, L, col, kind, false); shoe(hx - U(0, 4), zc + wd * 0.62, a + U(-.08, .08), L, col, kind, true); });
+    }
+  } else if (mode === 'shelf') {
+    box(0, s0, W - 6, s1, C.shelfY - 6, C.shelfY, M.walnutLight);
+    const n = C.stacks[si]; const step = (s1 - s0) / n.length;
+    n.forEach((cnt, k) => folded(W * .44, s0 + step * (k + .5), W * .62, Math.min(step - 26, 104), cnt, C.shelfY, C.stackPal[k % C.stackPal.length]));
+  }
+});
+
+// ---------- light: soft warm, matching the apartment render ----------
+scene.add(new THREE.HemisphereLight(0xfff1e2, 0x6b5646, 1.25));
+const sun = new THREE.DirectionalLight(0xfff0dd, 1.1);
+sun.position.set(W / 2 + 500, 2200, H / 2 - 250); sun.target.position.set(W / 2, 0, H / 2); scene.add(sun.target);
+sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -H, right: H, top: H, bottom: -H, near: 10, far: 4000 }); sun.shadow.radius = 6; sun.shadow.bias = -.0005; sun.shadow.normalBias = 1;
+scene.add(sun);
+secs.forEach(([s0, s1]) => { const l = new THREE.PointLight(0xffc98a, C.led || 60000, 0, 2); l.position.set(W - 20, C.wallH - 10, (s0 + s1) / 2);
+  l.castShadow = true; l.shadow.mapSize.set(1024, 1024); l.shadow.radius = 8; l.shadow.bias = -.002; scene.add(l); });
+
+const composer = new EffectComposer(renderer); composer.setSize(W * K, H * K);
+composer.addPass(new RenderPass(scene, cam));
+const ao = new GTAOPass(scene, cam, W * K, H * K);
+ao.updateGtaoMaterial({ radius: 22, distanceExponent: 1.4, thickness: 10, scale: 1.3, samples: 16 }); ao.blendIntensity = 1.0;
+composer.addPass(ao); composer.addPass(new OutputPass());
+composer.render();
+window.RENDER_DONE = true;
+</script></body></html>
